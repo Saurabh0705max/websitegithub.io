@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-auth-compat.js"></script>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Auth System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body {
+            background: radial-gradient(circle at top left, #1a1a2e, #16213e, #0f3460);
+            height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; color: #fff;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
+            padding: 40px; border-radius: 24px; width: 95%; max-width: 420px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
+            text-align: center; position: relative; z-index: 10;
+        }
+        .subtitle { font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 25px; }
+        .input-group { text-align: left; margin-bottom: 18px; position: relative; }
+        label { display: block; font-size: 12px; margin-bottom: 6px; color: rgba(255,255,255,0.8); }
+        
+        input {
+            width: 100%; padding: 12px; border-radius: 12px; border: 2px solid transparent;
+            outline: none; background: rgba(255, 255, 255, 0.1); color: #fff; font-size: 14px; transition: 0.3s;
+        }
+        input:focus { border-color: #00d2ff; background: rgba(255,255,255,0.15); }
+        
+        .btn {
+            width: 100%; padding: 14px; border: none; border-radius: 12px;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5); color: #fff;
+            font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.3s; margin-top: 10px;
+        }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0, 210, 255, 0.3); }
+
+        #dashboard-area { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 100; padding: 20px; display: none; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .nav-bar { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 15px 25px; border-radius: 15px; }
+        
+        /* SIDEBAR STYLES */
+        .sidebar {
+            position: fixed; top: 0; right: -350px; width: 320px; height: 100%;
+            background: #1e293b; box-shadow: -10px 0 30px rgba(0,0,0,0.5); transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000;
+            padding: 40px 20px; text-align: center; border-left: 1px solid rgba(0, 210, 255, 0.2);
+        }
+        .sidebar.active { right: 0; }
+        .profile-pic { width: 80px; height: 80px; background: linear-gradient(45deg, #00d2ff, #3a7bd5); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 35px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        
+        .uid-box { font-size: 11px; background: rgba(0, 210, 255, 0.1); color: #00d2ff; padding: 4px 10px; border-radius: 20px; display: inline-block; margin-bottom: 25px; border: 1px solid rgba(0, 210, 255, 0.3); }
+        
+        .sidebar-input-group { text-align: left; margin-bottom: 20px; }
+        .sidebar-input-group label { color: #00d2ff; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <div class="card" id="auth-card">
+        <div id="form-section">
+            <h2>Namaste!</h2>
+            <p class="subtitle">Enter your details to login</p>
+            
+            <button class="btn" style="background: #fff; color: #000; margin-bottom: 20px;" onclick="googleLogin()">
+                <i class="fab fa-google"></i> Google Login
+            </button>
+
+            <div class="input-group">
+                <label>Email Address</label>
+                <input type="email" id="email" placeholder="mail@example.com">
+            </div>
+
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="••••••••">
+            </div>
+
+            <button class="btn" onclick="handleAction()">Continue</button>
+        </div>
+    </div>
+
+    <div id="dashboard-area">
+        <div class="nav-bar">
+            <h2>MyApp</h2>
+            <i class="fa-solid fa-bars" style="font-size: 24px; cursor: pointer; color: #00d2ff;" onclick="toggleMenu()"></i>
+        </div>
+        <div style="text-align: center; margin-top: 100px;">
+            <h1 style="font-size: 40px;">Swagat Hai!</h1>
+            <p style="color: rgba(255,255,255,0.6);">Aapka account successfully login ho gaya hai.</p>
+        </div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <i class="fa-solid fa-xmark" style="position: absolute; top: 20px; left: 20px; cursor: pointer; font-size: 24px; color: #ff4757;" onclick="toggleMenu()"></i>
+        
+        <div class="profile-pic"><i class="fa-solid fa-user"></i></div>
+        
+        <div class="uid-box">UID: <span id="user-uid">NOT-SET</span></div>
+
+        <div class="sidebar-input-group">
+            <label><i class="fa-solid fa-signature"></i> Your Name</label>
+            <input type="text" id="edit-name" placeholder="Enter your name">
+        </div>
+
+        <div class="sidebar-input-group">
+            <label><i class="fa-solid fa-envelope"></i> Your Email</label>
+            <input type="email" id="edit-email" placeholder="Enter your email">
+        </div>
+
+        <button class="btn" style="background: #2ecc71;" onclick="updateProfileData()" id="save-btn">
+            <i class="fa-solid fa-floppy-disk"></i> Save Changes
+        </button>
+
+        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 30px 0;">
+        
+        <button class="btn" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444;" onclick="location.reload()">
+            <i class="fa-solid fa-power-off"></i> Logout
+        </button>
+    </div>
+
+<script>
+    // 1. Firebase Config (Replace with your actual keys)
+    const firebaseConfig = {
+        apiKey: "AIzaSyAtuRPyTe6d2WID4MsThK5uWcfBpqVZFOU",
+        authDomain: "website-create-76e8e.firebaseapp.com",
+        projectId: "website-create-76e8e",
+        storageBucket: "website-create-76e8e.firebasestorage.app",
+        messagingSenderId: "817499142050",
+        appId: "1:817499142050:web:46be8894a8e316f80a24fb"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+
+    function toggleMenu() {
+        document.getElementById('sidebar').classList.toggle('active');
+    }
+
+    function handleAction() {
+        const email = document.getElementById('email').value.trim();
+        const pass = document.getElementById('password').value;
+
+        if (email !== "" && pass !== "") {
+            firebase.auth().signInWithEmailAndPassword(email, pass)
+                .then(res => enterDashboard(res.user))
+                .catch(() => {
+                    firebase.auth().createUserWithEmailAndPassword(email, pass)
+                        .then(res => enterDashboard(res.user))
+                        .catch(e => alert(e.message));
+                });
+        } else {
+            alert("Email aur Password sahi daalein!");
+        }
+    }
+
+    function googleLogin() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider)
+            .then(res => enterDashboard(res.user))
+            .catch(err => alert(err.message));
+    }
+
+    function enterDashboard(user) {
+        document.getElementById('auth-card').style.display = "none";
+        document.getElementById('dashboard-area').style.display = "block";
+        
+        // Sidebar me values set karna
+        document.getElementById('edit-name').value = user.displayName || "";
+        document.getElementById('edit-email').value = user.email || "";
+        
+        // Generating a cleaner UID for display
+        document.getElementById('user-uid').innerText = user.uid.substring(0, 10).toUpperCase();
+    }
+
+    function updateProfileData() {
+        const user = firebase.auth().currentUser;
+        const newName = document.getElementById('edit-name').value;
+        const newEmail = document.getElementById('edit-email').value;
+        const saveBtn = document.getElementById('save-btn');
+
+        if (user) {
+            saveBtn.innerText = "Saving...";
+            
+            user.updateProfile({
+                displayName: newName
+            }).then(() => {
+                if (newEmail !== user.email) {
+                    user.updateEmail(newEmail).catch(err => console.log("Email update error: ", err.message));
+                }
+                saveBtn.innerText = "Saved!";
+                saveBtn.style.background = "#27ae60";
+                setTimeout(() => {
+                    saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Changes';
+                    saveBtn.style.background = "#2ecc71";
+                }, 2000);
+            }).catch(err => alert(err.message));
+        }
+    }
+</script>
+</body>
+</html>
