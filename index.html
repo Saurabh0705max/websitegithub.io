@@ -204,3 +204,240 @@
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-auth-compat.js"></script>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Auth System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body {
+            background: radial-gradient(circle at top left, #1a1a2e, #16213e, #0f3460);
+            height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; color: #fff;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
+            padding: 40px; border-radius: 24px; width: 95%; max-width: 420px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
+            text-align: center; position: relative; z-index: 10;
+        }
+        .subtitle { font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 25px; }
+        .input-group { text-align: left; margin-bottom: 18px; position: relative; }
+        label { display: block; font-size: 12px; margin-bottom: 6px; color: rgba(255,255,255,0.8); }
+        
+        .phone-container { position: relative; display: flex; align-items: center; }
+        .prefix { position: absolute; left: 12px; color: #00d2ff; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2); padding-right: 8px; }
+        #phone { padding-left: 55px !important; }
+
+        input {
+            width: 100%; padding: 14px; border-radius: 12px; border: 2px solid transparent;
+            outline: none; background: rgba(255, 255, 255, 0.1); color: #fff; font-size: 15px; transition: 0.3s;
+        }
+        input:focus { border-color: #00d2ff; }
+        
+        .btn {
+            width: 100%; padding: 14px; border: none; border-radius: 12px;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5); color: #fff;
+            font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.3s; margin-top: 10px;
+        }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0, 210, 255, 0.3); }
+
+        #otp-section, #dashboard-area { display: none; }
+        
+        .otp-inputs { display: flex; gap: 8px; justify-content: center; margin: 25px 0; }
+        .otp-inputs input { width: 45px; height: 55px; text-align: center; font-size: 22px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; }
+
+        #dashboard-area { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 100; padding: 20px; display: none; }
+        .nav-bar { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 15px 25px; border-radius: 15px; }
+        .sidebar {
+            position: fixed; top: 0; right: -320px; width: 300px; height: 100%;
+            background: #1e293b; box-shadow: -10px 0 30px rgba(0,0,0,0.5); transition: 0.4s ease; z-index: 1000;
+            padding: 40px 20px; text-align: center;
+        }
+        .sidebar.active { right: 0; }
+        .profile-pic { width: 80px; height: 80px; background: #00d2ff; border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 35px; }
+    </style>
+</head>
+<body>
+
+    <div class="card" id="auth-card">
+        <div id="form-section">
+            <h2>Namaste!</h2>
+            <p class="subtitle">Enter your details to login</p>
+            
+            <button class="btn" style="background: #fff; color: #000; margin-bottom: 20px;" onclick="googleLogin()">
+                <i class="fab fa-google"></i> Google Login
+            </button>
+
+            <div class="input-group">
+                <label>Email Address</label>
+                <input type="email" id="email" placeholder="mail@example.com">
+            </div>
+
+            <div class="input-group">
+                <label>Phone Number</label>
+                <div class="phone-container">
+                    <span class="prefix">+91</span>
+                    <input type="tel" id="phone" placeholder="90650XXXXX" maxlength="10">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="••••••••">
+            </div>
+
+            <div id="recaptcha-container"></div>
+            <button class="btn" onclick="handleAction()">Continue</button>
+        </div>
+
+        <div id="otp-section">
+            <h2>Verify OTP</h2>
+            <p class="subtitle">We sent a code to your mobile</p>
+            <div class="otp-inputs">
+                <input type="text" maxlength="1" class="otp-digit" id="o1">
+                <input type="text" maxlength="1" class="otp-digit" id="o2">
+                <input type="text" maxlength="1" class="otp-digit" id="o3">
+                <input type="text" maxlength="1" class="otp-digit" id="o4">
+                <input type="text" maxlength="1" class="otp-digit" id="o5">
+                <input type="text" maxlength="1" class="otp-digit" id="o6">
+            </div>
+            <button class="btn" onclick="finalVerify()">Verify OTP</button>
+            <p style="margin-top: 15px; font-size: 12px; cursor: pointer; color: #00d2ff;" onclick="location.reload()">Cancel</p>
+        </div>
+    </div>
+
+    <div id="dashboard-area">
+        <div class="nav-bar">
+            <h2>MyApp</h2>
+            <i class="fa-solid fa-bars" style="font-size: 24px; cursor: pointer; color: #00d2ff;" onclick="toggleMenu()"></i>
+        </div>
+        <div style="text-align: center; margin-top: 100px;">
+            <h1>Swagat Hai!</h1>
+            <p>You are now logged in.</p>
+        </div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <i class="fa-solid fa-xmark" style="position: absolute; top: 20px; left: 20px; cursor: pointer; font-size: 24px;" onclick="toggleMenu()"></i>
+        <div class="profile-pic"><i class="fa-solid fa-user"></i></div>
+        <h3 id="user-name">User Name</h3>
+        <p id="user-info" style="color: rgba(255,255,255,0.6); font-size: 13px;">Contact Info</p>
+        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 30px 0;">
+        <button class="btn" style="background: #ef4444;" onclick="location.reload()">Logout</button>
+    </div>
+
+<script>
+
+    // 1. Firebase Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyAtuRPyTe6d2WID4MsThK5uWcfBpqVZFOU",
+        authDomain: "website-create-76e8e.firebaseapp.com",
+        projectId: "website-create-76e8e",
+        storageBucket: "website-create-76e8e.firebasestorage.app",
+        messagingSenderId: "817499142050",
+        appId: "1:817499142050:web:46be8894a8e316f80a24fb"
+    };
+
+    // Initialize Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+
+    // 2. Setup Recaptcha
+    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+        'size': 'invisible'
+    });
+
+    // 3. OTP Box Auto-focus
+    const inputs = document.querySelectorAll('.otp-digit');
+    inputs.forEach((input, index) => {
+        input.addEventListener('keyup', (e) => {
+            if (e.key >= 0 && e.key <= 9) {
+                if (index < inputs.length - 1) inputs[index + 1].focus();
+            } else if (e.key === 'Backspace') {
+                if (index > 0) inputs[index - 1].focus();
+            }
+        });
+    });
+
+    function toggleMenu() {
+        document.getElementById('sidebar').classList.toggle('active');
+    }
+
+    // 4. Send OTP or Login
+    function handleAction() {
+        const email = document.getElementById('email').value.trim();
+        const pass = document.getElementById('password').value;
+        const phone = document.getElementById('phone').value.trim();
+
+        if (phone.length === 10) {
+            const fullPhone = "+91" + phone;
+            firebase.auth().signInWithPhoneNumber(fullPhone, window.recaptchaVerifier)
+                .then((confirmationResult) => {
+                    window.confirmationResult = confirmationResult;
+                    document.getElementById('form-section').style.display = "none";
+                    document.getElementById('otp-section').style.display = "block";
+                }).catch((error) => {
+                    alert("OTP Error: " + error.message);
+                });
+        } else if (email !== "" && pass !== "") {
+            firebase.auth().signInWithEmailAndPassword(email, pass)
+                .then(res => enterDashboard(res.user))
+                .catch(err => {
+                    firebase.auth().createUserWithEmailAndPassword(email, pass)
+                        .then(res => enterDashboard(res.user))
+                        .catch(e => alert(e.message));
+                });
+        } else {
+            alert("Sahi info daalein (Phone ya Email/Pass)");
+        }
+    }
+
+    // 5. Final OTP Verify
+    function finalVerify() {
+        let otpCode = "";
+        inputs.forEach(input => otpCode += input.value);
+        
+        if (otpCode.length === 6) {
+            window.confirmationResult.confirm(otpCode)
+                .then((result) => enterDashboard(result.user))
+                .catch(() => alert("Galat OTP!"));
+        } else {
+            alert("Poora 6 digit daalein");
+        }
+    }
+
+    function googleLogin() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider)
+            .then(res => enterDashboard(res.user))
+            .catch(err => alert(err.message));
+    }
+
+    function enterDashboard(user) {
+        document.getElementById('auth-card').style.display = "none";
+        document.getElementById('dashboard-area').style.display = "block";
+        document.getElementById('user-name').innerText = user.displayName || "User Account";
+        document.getElementById('user-info').innerText = user.email || user.phoneNumber;
+    }
+</script>
+</body>
+</html>
