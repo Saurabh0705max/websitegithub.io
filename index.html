@@ -1,4 +1,4 @@
-<!-- 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -130,98 +130,98 @@
 
 <script>
 
-    // 1. Firebase Config
-    const firebaseConfig = {
-        apiKey: "AIzaSyAtuRPyTe6d2WID4MsThK5uWcfBpqVZFOU",
-        authDomain: "website-create-76e8e.firebaseapp.com",
-        projectId: "website-create-76e8e",
-        storageBucket: "website-create-76e8e.firebasestorage.app",
-        messagingSenderId: "817499142050",
-        appId: "1:817499142050:web:46be8894a8e316f80a24fb"
-    };
+//     // 1. Firebase Config
+//     const firebaseConfig = {
+//         apiKey: "AIzaSyAtuRPyTe6d2WID4MsThK5uWcfBpqVZFOU",
+//         authDomain: "website-create-76e8e.firebaseapp.com",
+//         projectId: "website-create-76e8e",
+//         storageBucket: "website-create-76e8e.firebasestorage.app",
+//         messagingSenderId: "817499142050",
+//         appId: "1:817499142050:web:46be8894a8e316f80a24fb"
+//     };
 
-    // Initialize Firebase
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
+//     // Initialize Firebase
+//     if (!firebase.apps.length) {
+//         firebase.initializeApp(firebaseConfig);
+//     }
 
-    // 2. Setup Recaptcha
-    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-        'size': 'invisible'
-    });
+//     // 2. Setup Recaptcha
+//     window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+//         'size': 'invisible'
+//     });
 
-    // 3. OTP Box Auto-focus
-    const inputs = document.querySelectorAll('.otp-digit');
-    inputs.forEach((input, index) => {
-        input.addEventListener('keyup', (e) => {
-            if (e.key >= 0 && e.key <= 9) {
-                if (index < inputs.length - 1) inputs[index + 1].focus();
-            } else if (e.key === 'Backspace') {
-                if (index > 0) inputs[index - 1].focus();
-            }
-        });
-    });
+//     // 3. OTP Box Auto-focus
+//     const inputs = document.querySelectorAll('.otp-digit');
+//     inputs.forEach((input, index) => {
+//         input.addEventListener('keyup', (e) => {
+//             if (e.key >= 0 && e.key <= 9) {
+//                 if (index < inputs.length - 1) inputs[index + 1].focus();
+//             } else if (e.key === 'Backspace') {
+//                 if (index > 0) inputs[index - 1].focus();
+//             }
+//         });
+//     });
 
-    function toggleMenu() {
-        document.getElementById('sidebar').classList.toggle('active');
-    }
+//     function toggleMenu() {
+//         document.getElementById('sidebar').classList.toggle('active');
+//     }
 
-    // 4. Send OTP or Login
-    function handleAction() {
-        const email = document.getElementById('email').value.trim();
-        const pass = document.getElementById('password').value;
-        const phone = document.getElementById('phone').value.trim();
+//     // 4. Send OTP or Login
+//     function handleAction() {
+//         const email = document.getElementById('email').value.trim();
+//         const pass = document.getElementById('password').value;
+//         const phone = document.getElementById('phone').value.trim();
 
-        if (phone.length === 10) {
-            const fullPhone = "+91" + phone;
-            firebase.auth().signInWithPhoneNumber(fullPhone, window.recaptchaVerifier)
-                .then((confirmationResult) => {
-                    window.confirmationResult = confirmationResult;
-                    document.getElementById('form-section').style.display = "none";
-                    document.getElementById('otp-section').style.display = "block";
-                }).catch((error) => {
-                    alert("OTP Error: " + error.message);
-                });
-        } else if (email !== "" && pass !== "") {
-            firebase.auth().signInWithEmailAndPassword(email, pass)
-                .then(res => enterDashboard(res.user))
-                .catch(err => {
-                    firebase.auth().createUserWithEmailAndPassword(email, pass)
-                        .then(res => enterDashboard(res.user))
-                        .catch(e => alert(e.message));
-                });
-        } else {
-            alert("Sahi info daalein (Phone ya Email/Pass)");
-        }
-    }
+//         if (phone.length === 10) {
+//             const fullPhone = "+91" + phone;
+//             firebase.auth().signInWithPhoneNumber(fullPhone, window.recaptchaVerifier)
+//                 .then((confirmationResult) => {
+//                     window.confirmationResult = confirmationResult;
+//                     document.getElementById('form-section').style.display = "none";
+//                     document.getElementById('otp-section').style.display = "block";
+//                 }).catch((error) => {
+//                     alert("OTP Error: " + error.message);
+//                 });
+//         } else if (email !== "" && pass !== "") {
+//             firebase.auth().signInWithEmailAndPassword(email, pass)
+//                 .then(res => enterDashboard(res.user))
+//                 .catch(err => {
+//                     firebase.auth().createUserWithEmailAndPassword(email, pass)
+//                         .then(res => enterDashboard(res.user))
+//                         .catch(e => alert(e.message));
+//                 });
+//         } else {
+//             alert("Sahi info daalein (Phone ya Email/Pass)");
+//         }
+//     }
 
-    // 5. Final OTP Verify
-    function finalVerify() {
-        let otpCode = "";
-        inputs.forEach(input => otpCode += input.value);
+//     // 5. Final OTP Verify
+//     function finalVerify() {
+//         let otpCode = "";
+//         inputs.forEach(input => otpCode += input.value);
         
-        if (otpCode.length === 6) {
-            window.confirmationResult.confirm(otpCode)
-                .then((result) => enterDashboard(result.user))
-                .catch(() => alert("Galat OTP!"));
-        } else {
-            alert("Poora 6 digit daalein");
-        }
-    }
+//         if (otpCode.length === 6) {
+//             window.confirmationResult.confirm(otpCode)
+//                 .then((result) => enterDashboard(result.user))
+//                 .catch(() => alert("Galat OTP!"));
+//         } else {
+//             alert("Poora 6 digit daalein");
+//         }
+//     }
 
-    function googleLogin() {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        firebase.auth().signInWithPopup(provider)
-            .then(res => enterDashboard(res.user))
-            .catch(err => alert(err.message));
-    }
+//     function googleLogin() {
+//         const provider = new firebase.auth.GoogleAuthProvider();
+//         firebase.auth().signInWithPopup(provider)
+//             .then(res => enterDashboard(res.user))
+//             .catch(err => alert(err.message));
+//     }
 
-    function enterDashboard(user) {
-        document.getElementById('auth-card').style.display = "none";
-        document.getElementById('dashboard-area').style.display = "block";
-        document.getElementById('user-name').innerText = user.displayName || "User Account";
-        document.getElementById('user-info').innerText = user.email || user.phoneNumber;
-    }
-</script>
-</body>
-</html> -->
+//     function enterDashboard(user) {
+//         document.getElementById('auth-card').style.display = "none";
+//         document.getElementById('dashboard-area').style.display = "block";
+//         document.getElementById('user-name').innerText = user.displayName || "User Account";
+//         document.getElementById('user-info').innerText = user.email || user.phoneNumber;
+//     }
+// </script>
+// </body>
+// </html>
